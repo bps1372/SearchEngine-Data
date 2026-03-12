@@ -54,7 +54,7 @@ try:
     col1, col2 = st.columns(2)
     
     with col1:
-        search_nama = st.text_input("Cari Nama Usaha (Awal):", placeholder="Ketik nama usaha di sini...").strip()
+        search_nama = st.text_input("Cari Nama Usaha :", placeholder="Ketik nama usaha di sini...").strip()
     with col2:
         search_gc = st.text_input("Cari Nama Usaha (Hasil GC):", placeholder="Ketik nama usaha GC di sini...").strip()
 
