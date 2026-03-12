@@ -139,7 +139,7 @@ try:
     st.markdown("### 🔍 Search")
     
     search_query = st.text_input(
-        "Masukkan Nama Usaha (Data Awal / Hasil GC):", 
+        "Masukkan Nama Usaha (Data Awal / Hasil GC), lalu enter:", 
         placeholder="Ketik kata kunci di sini lalu tekan Enter..."
     ).strip()
 
