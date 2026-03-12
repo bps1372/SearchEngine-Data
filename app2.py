@@ -1,4 +1,3 @@
-
 import streamlit as st
 import pandas as pd
 import numpy as np
@@ -27,10 +26,9 @@ def load_data(sheet_url):
         if col in df.columns:
             df[col] = df[col].replace(r'^\s*$', np.nan, regex=True).fillna("tidak ada perubahan")
             
-    # c. PERBAIKAN: latitude_gc & longitude_gc agar tidak kosong
+    # c. Format latitude & longitude agar titik koordinat muncul dengan benar
     for col in ['latitude_gc', 'longitude_gc']:
         if col in df.columns:
-            # Ubah jadi string -> Ganti koma dengan titik -> Baru ubah ke angka numerik
             df[col] = df[col].astype(str).str.replace(',', '.', regex=False)
             df[col] = pd.to_numeric(df[col], errors='coerce')
             
@@ -48,7 +46,7 @@ try:
     with st.spinner('Menarik data dari server Google...'):
         df_asli = load_data(SPREADSHEET_URL)
         
-    # 3. UI Mesin Pencari (Sekarang Hanya 1 Kolom)
+    # 3. UI Mesin Pencari (Hanya 1 Kolom)
     st.markdown("### 🔍 Filter Pencarian")
     
     search_query = st.text_input(
@@ -56,22 +54,20 @@ try:
         placeholder="Ketik nama usaha di sini..."
     ).strip()
 
-    # 4. Logika Pencarian Cepat (Gabungan OR)
+    # 4. Logika Pencarian Cepat
     df_hasil = df_asli.copy()
     
     if search_query:
-        # Menyiapkan filter kosong
         mask = pd.Series(False, index=df_hasil.index)
         
         # Cari di kolom nama_usaha
         if 'nama_usaha' in df_hasil.columns:
             mask |= df_hasil['nama_usaha'].astype(str).str.contains(search_query, case=False, na=False)
             
-        # Cari di kolom nama_usaha_gc (Kecuali jika user iseng ngetik 'tidak ada perubahan')
+        # Cari di kolom nama_usaha_gc
         if 'nama_usaha_gc' in df_hasil.columns and search_query.lower() != "tidak ada perubahan":
             mask |= df_hasil['nama_usaha_gc'].astype(str).str.contains(search_query, case=False, na=False)
             
-        # Terapkan filter
         df_hasil = df_hasil[mask]
 
     # 5. Mengatur Kolom yang Ditampilkan
@@ -104,14 +100,6 @@ try:
     
     # Menampilkan tabel
     st.dataframe(df_hasil[kolom_final], use_container_width=True, hide_index=True)
-
-    # 7. TAMPILAN PETA (Sekarang koordinat harusnya terbaca)
-    if 'latitude_gc' in df_hasil.columns and 'longitude_gc' in df_hasil.columns:
-        df_peta = df_hasil.dropna(subset=['latitude_gc', 'longitude_gc'])
-        if not df_peta.empty:
-            with st.expander("📍 Lihat Sebaran Titik Lokasi Ground Check", expanded=False):
-                df_peta = df_peta.rename(columns={'latitude_gc': 'latitude', 'longitude_gc': 'longitude'})
-                st.map(df_peta[['latitude', 'longitude']])
 
 except Exception as e:
     st.error(f"Gagal memuat data. Detail error: {e}")
