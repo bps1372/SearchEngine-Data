@@ -6,22 +6,20 @@ import numpy as np
 st.set_page_config(page_title="Pencarian Data Usaha & GC", page_icon="🏢", layout="wide")
 st.title("⚡ Mesin Pencari Data Usaha & Ground Check")
 
-# --- MASUKKAN LINK SPREADSHEET DI SINI ---
-# Pastikan spreadsheet sudah di-set "Anyone with the link" (Viewer)
+# --- LINK SPREADSHEET DARI KAMU ---
 SPREADSHEET_URL = "https://docs.google.com/spreadsheets/d/1mAGNiRuyP0XH-apFUsCCWAjVTMAH8S2raFkG0XjYqJ8/edit?usp=sharing"
 
 # 2. Fungsi Penarikan & Transformasi Data
-@st.cache_data(ttl=600) # Cache 10 menit
+@st.cache_data(ttl=600) # Cache 10 menit untuk kecepatan maksimal
 def load_data(sheet_url):
-    if "/edit" in sheet_url:
-        csv_url = sheet_url.replace('/edit', '/export?format=csv')
-        csv_url = csv_url.split('&')[0]
-    else:
-        csv_url = sheet_url
+    # Trik: Memotong bagian '/edit...' dan menggantinya dengan export CSV
+    # Ini memastikan pembacaan data jauh lebih cepat dari pada membaca format .xlsx
+    csv_url = sheet_url.split('/edit')[0] + '/export?format=csv'
         
+    # Membaca data ke Pandas
     df = pd.read_csv(csv_url)
     
-    # --- PROSES FORMATTING DATA ---
+    # --- PROSES FORMATTING DATA SESUAI PERMINTAAN ---
     
     # a. Mapping gcs_result (1 -> Ditemukan, 3 -> Tutup, dst)
     mapping_gcs = {
@@ -36,10 +34,10 @@ def load_data(sheet_url):
     # b. nama_usaha_gc & alamat_usaha_gc: jika kosong -> "tidak ada perubahan"
     for col in ['nama_usaha_gc', 'alamat_usaha_gc']:
         if col in df.columns:
-            # Ubah spasi kosong menjadi NaN, lalu isi semua NaN dengan teks default
+            # Hapus spasi kosong yang tidak sengaja terketik, ubah jadi NaN, lalu isi teks default
             df[col] = df[col].replace(r'^\s*$', np.nan, regex=True).fillna("tidak ada perubahan")
             
-    # c. latitude_gc & longitude_gc: jika kosong/error -> null (NaN)
+    # c. latitude_gc & longitude_gc: pastikan format angka, jika error -> null (NaN)
     for col in ['latitude_gc', 'longitude_gc']:
         if col in df.columns:
             df[col] = pd.to_numeric(df[col], errors='coerce')
@@ -47,7 +45,8 @@ def load_data(sheet_url):
     return df
 
 try:
-    with st.spinner('Menarik dan memproses data...'):
+    # Memunculkan animasi loading saat pertama kali data ditarik
+    with st.spinner('Menarik data dari server Google...'):
         df_asli = load_data(SPREADSHEET_URL)
         
     # 3. UI Mesin Pencari
@@ -59,25 +58,27 @@ try:
     with col2:
         search_gc = st.text_input("Cari Nama Usaha (Hasil GC):", placeholder="Ketik nama usaha GC di sini...").strip()
 
-    # 4. Logika Pencarian Cepat
+    # 4. Logika Pencarian Cepat (Bekerja di RAM komputer/server)
     df_hasil = df_asli.copy()
     
+    # Pencarian berdasar Nama Usaha
     if search_nama and 'nama_usaha' in df_hasil.columns:
         df_hasil = df_hasil[df_hasil['nama_usaha'].astype(str).str.contains(search_nama, case=False, na=False)]
         
+    # Pencarian berdasar Nama Usaha GC
     if search_gc and 'nama_usaha_gc' in df_hasil.columns:
-        # Pengecualian: jangan cari teks "tidak ada perubahan" jika inputnya kosong
+        # Abaikan pencarian jika user iseng mengetik "tidak ada perubahan"
         if search_gc.lower() != "tidak ada perubahan":
             df_hasil = df_hasil[df_hasil['nama_usaha_gc'].astype(str).str.contains(search_gc, case=False, na=False)]
 
-    # 5. Mengatur Kolom yang Ditampilkan Sesuai Permintaan
+    # 5. Mengatur Kolom yang Ditampilkan
     kolom_tampil = [
         'nama_usaha', 'alamat_usaha', 'nmdesa', 'status_perusahaan',
         'gcs_result', 'gc_username', 'nama_usaha_gc', 'alamat_usaha_gc',
         'latitude_gc', 'longitude_gc'
     ]
     
-    # Hanya ambil kolom yang benar-benar ada di data untuk mencegah error
+    # Amankan dari error jika ada kolom yang hilang di spreadsheet
     kolom_final = [k for k in kolom_tampil if k in df_hasil.columns]
 
     # 6. TAMPILAN TABEL HASIL
@@ -89,19 +90,14 @@ try:
     
     st.dataframe(df_hasil[kolom_final], use_container_width=True, hide_index=True)
 
-    # 7. TAMPILAN PETA (Otomatis memetakan titik yang memiliki latitude & longitude valid)
+    # 7. TAMPILAN PETA TITIK KOORDINAT (GC)
     if 'latitude_gc' in df_hasil.columns and 'longitude_gc' in df_hasil.columns:
-        # Filter data yang koordinatnya tidak null
         df_peta = df_hasil.dropna(subset=['latitude_gc', 'longitude_gc'])
         
         if not df_peta.empty:
-            with st.expander("📍 Lihat Sebaran Titik Lokasi (Ground Check)", expanded=False):
-                # Rename kolom agar dikenali oleh st.map()
+            with st.expander("📍 Lihat Sebaran Titik Lokasi Ground Check", expanded=False):
                 df_peta = df_peta.rename(columns={'latitude_gc': 'latitude', 'longitude_gc': 'longitude'})
                 st.map(df_peta[['latitude', 'longitude']])
-        else:
-            with st.expander("📍 Lihat Sebaran Titik Lokasi (Ground Check)", expanded=False):
-                st.write("Tidak ada data koordinat yang valid untuk ditampilkan di peta pada pencarian ini.")
 
 except Exception as e:
-    st.error(f"Gagal memuat data. Pastikan link Spreadsheet sudah benar. Detail error: {e}")
+    st.error(f"Gagal memuat data. Pastikan link bisa diakses publik. Detail error: {e}")
