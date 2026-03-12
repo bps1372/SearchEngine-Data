@@ -92,7 +92,8 @@ st.markdown(custom_css, unsafe_allow_html=True)
 # Menampilkan Banner Header Custom
 st.markdown("""
 <div class="custom-header">
-    <h1>🏢 Portal Direktori Usaha & Ground Check</h1>
+    <h1>🏢 Portal Direktori Usaha & Ground Check SBR</h1>
+    <h2>BPS Kota Solok</h2>
     <p>Sistem Pencarian Data Terpadu Berbasis Real-Time</p>
 </div>
 """, unsafe_allow_html=True)
@@ -136,7 +137,7 @@ try:
         df_asli = load_data(SPREADSHEET_URL)
         
     # 3. UI Mesin Pencari
-    st.markdown("### 🔍 Parameter Pencarian")
+    st.markdown("### 🔍 Search")
     
     search_query = st.text_input(
         "Masukkan Nama Usaha (Data Awal / Hasil GC):", 
@@ -178,7 +179,7 @@ try:
     with col_download:
         excel_data = convert_df_to_excel(df_hasil[kolom_final])
         st.download_button(
-            label="📥 Unduh Rekap (Excel)",
+            label="📥 Download (Excel)",
             data=excel_data,
             file_name="rekap_data_gc.xlsx",
             mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
