@@ -92,9 +92,8 @@ st.markdown(custom_css, unsafe_allow_html=True)
 # Menampilkan Banner Header Custom
 st.markdown("""
 <div class="custom-header">
-    <h1>🏢 Portal Direktori Usaha & Ground Check SBR</h1>
+    <h1>🏢 Portal Direktori Usaha & Ground Check SBR Lanjutan</h1>
     <h2>BPS Kota Solok</h2>
-    <p>Sistem Pencarian Data Terpadu Berbasis Real-Time</p>
 </div>
 """, unsafe_allow_html=True)
 
