@@ -7,7 +7,7 @@ import io
 st.set_page_config(page_title="Portal Data Usaha & GC", page_icon="🏢", layout="wide")
 
 # ==========================================
-# INJEKSI CSS UNTUK TAMPILAN PROFESIONAL
+# INJEKSI CSS TEMA BIRU TERANG & BERSIH
 # ==========================================
 custom_css = """
 <style>
@@ -16,70 +16,80 @@ custom_css = """
     footer {visibility: hidden;}
     header {visibility: hidden;}
     
-    /* 2. Mengurangi jarak kosong di bagian atas halaman */
-    .block-container {
-        padding-top: 2rem !important;
-        padding-bottom: 2rem !important;
+    /* 2. Memaksa Background Aplikasi menjadi Biru Sangat Muda (Ice Blue) */
+    .stApp {
+        background-color: #F0F6FF !important;
+    }
+
+    /* 3. Memaksa warna teks utama menjadi biru gelap agar kontras */
+    h1, h2, h3, h4, h5, h6, p, label {
+        color: #0F172A !important;
     }
     
-    /* 3. Membuat Banner Header Custom (Warna Gradient Modern) */
+    /* 4. Membuat Banner Header Custom (Biru Elegan) */
     .custom-header {
-        background: linear-gradient(135deg, #0f172a 0%, #3b82f6 100%);
+        background: linear-gradient(135deg, #1E3A8A 0%, #3B82F6 100%);
         padding: 30px 20px;
         border-radius: 12px;
-        color: white;
+        color: white !important;
         text-align: center;
         margin-bottom: 30px;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        box-shadow: 0 4px 15px rgba(37, 99, 235, 0.2);
     }
     .custom-header h1 {
         margin: 0;
         font-size: 2.2rem;
         font-weight: 700;
-        color: white;
+        color: white !important;
     }
     .custom-header p {
         margin: 5px 0 0 0;
         font-size: 1.1rem;
-        opacity: 0.9;
+        color: #DBEAFE !important;
     }
     
-    /* 4. Styling Input Pencarian (Lebih membulat dan elegan) */
-    div[data-baseweb="input"] {
+    /* 5. Styling Input Box (Terang dan Border Biru Muda) */
+    .stTextInput input {
+        background-color: #FFFFFF !important;
+        color: #000000 !important;
+        border: 2px solid #BFDBFE !important;
         border-radius: 8px !important;
-        border: 1px solid #e2e8f0 !important;
-        background-color: #f8fafc !important;
         box-shadow: inset 0 2px 4px rgba(0,0,0,0.02) !important;
     }
+    .stTextInput input:focus {
+        border-color: #2563EB !important;
+        box-shadow: 0 0 0 1px #2563EB !important;
+    }
     
-    /* 5. Styling Tombol Download */
+    /* 6. Styling Tombol Download (Biru Terang ke Biru Gelap) */
     .stDownloadButton button {
-        background-color: #10b981;
-        color: white;
-        border: none;
-        border-radius: 8px;
-        font-weight: 600;
-        padding: 0.5rem 1rem;
-        transition: all 0.3s ease;
+        background-color: #2563EB !important;
+        color: white !important;
+        border: none !important;
+        border-radius: 8px !important;
+        font-weight: 600 !important;
+        padding: 0.5rem 1rem !important;
+        transition: all 0.3s ease !important;
         width: 100%;
     }
     .stDownloadButton button:hover {
-        background-color: #059669;
-        box-shadow: 0 4px 6px rgba(16, 185, 129, 0.2);
-        color: white;
+        background-color: #1D4ED8 !important;
+        box-shadow: 0 4px 8px rgba(37, 99, 235, 0.3) !important;
         transform: translateY(-1px);
     }
     
-    /* 6. Kotak Info & Success dibuat lebih rapi */
+    /* 7. Kotak Info (Warna Biru Lembut) */
     div[data-testid="stAlert"] {
+        background-color: #DBEAFE !important;
+        color: #1E3A8A !important;
         border-radius: 8px !important;
-        border: none !important;
+        border: 1px solid #BFDBFE !important;
     }
 </style>
 """
 st.markdown(custom_css, unsafe_allow_html=True)
 
-# Menampilkan Banner Header Custom (Pengganti st.title)
+# Menampilkan Banner Header Custom
 st.markdown("""
 <div class="custom-header">
     <h1>🏢 Portal Direktori Usaha & Ground Check</h1>
@@ -114,7 +124,6 @@ def load_data(sheet_url):
             
     return df
 
-# Fungsi konversi ke Excel
 @st.cache_data
 def convert_df_to_excel(df):
     output = io.BytesIO()
@@ -134,7 +143,7 @@ try:
         placeholder="Ketik kata kunci di sini lalu tekan Enter..."
     ).strip()
 
-    # 4. Logika Pencarian Cepat
+    # 4. Logika Pencarian
     df_hasil = df_asli.copy()
     
     if search_query:
@@ -148,7 +157,7 @@ try:
             
         df_hasil = df_hasil[mask]
 
-    # 5. Mengatur Kolom yang Ditampilkan
+    # 5. Kolom yang Ditampilkan
     kolom_tampil = [
         'nama_usaha', 'alamat_usaha', 'nmdesa', 'status_perusahaan',
         'gcs_result', 'gc_username', 'nama_usaha_gc', 'alamat_usaha_gc',
@@ -156,8 +165,8 @@ try:
     ]
     kolom_final = [k for k in kolom_tampil if k in df_hasil.columns]
 
-    # 6. TAMPILAN TABEL & DOWNLOAD
-    st.markdown("<br>", unsafe_allow_html=True) # Tambah sedikit spasi
+    # 6. TAMPILAN TABEL & METRIK
+    st.markdown("<br>", unsafe_allow_html=True)
     col_metrik, col_download = st.columns([3, 1])
     
     with col_metrik:
@@ -176,7 +185,7 @@ try:
             use_container_width=True
         )
     
-    # Menampilkan tabel
+    # TABEL DITAMPILKAN DI SINI (Akan selalu muncul baik saat ada pencarian atau tidak)
     st.dataframe(df_hasil[kolom_final], use_container_width=True, hide_index=True)
 
 except Exception as e:
